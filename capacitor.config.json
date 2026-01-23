@@ -1,0 +1,6 @@
+{
+  "appId": "com.rumonge.rec",
+  "appName": "REC Online",
+  "webDir": "out",
+  "bundledWebRuntime": false
+}

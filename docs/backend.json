@@ -1,0 +1,544 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile in the application.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "loginKey": {
+            "type": "string",
+            "description": "A unique 8-character key for student login."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["student", "admin"],
+          "description": "The role of the user."
+        },
+        "status": {
+            "type": "string",
+            "enum": ["active", "inactive"],
+            "description": "The current status of the student."
+        },
+        "age": {
+            "type": "number",
+            "description": "The student's age."
+        },
+        "address": {
+            "type": "string",
+            "description": "The student's physical address."
+        },
+        "photoURL": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the student's profile photo."
+        },
+        "enrolledCourseId": {
+            "type": "string",
+            "description": "The ID of the course the student is enrolled in."
+        },
+        "englishLevel": {
+            "type": "string",
+            "description": "The student's current English proficiency level."
+        },
+        "phoneNumber": {
+            "type": "string",
+            "description": "The student's phone number (optional)."
+        },
+        "maritalStatus": {
+            "type": "string",
+            "enum": ["single", "married"],
+            "description": "The student's marital status."
+        },
+        "educationalStatus": {
+            "type": "string",
+            "enum": ["government_student", "dropout", "graduated", "never_went_to_school"],
+            "description": "The student's educational background."
+        },
+        "learningReason": {
+            "type": "string",
+            "description": "The student's reason for wanting to learn English."
+        },
+        "averageGrade": {
+            "type": "number",
+            "description": "The student's average grade across all assignments."
+        }
+      },
+      "required": ["name", "email", "role", "age", "address", "enrolledCourseId", "englishLevel", "maritalStatus", "educationalStatus", "learningReason", "loginKey", "status"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Represents a course offered by the school.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the course."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the course."
+        },
+        "level": {
+          "type": "string",
+          "description": "The difficulty level of the course (e.g., A1, B2)."
+        },
+        "isEnabled": {
+            "type": "boolean",
+            "description": "Whether the course is visible and available to students."
+        },
+        "lessons": {
+          "type": "array",
+          "description": "An array of video lessons for the course.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "A unique ID for the lesson."
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "youtubeVideoId": {
+                "type": "string"
+              }
+            },
+            "required": ["id", "title", "youtubeVideoId"]
+          }
+        }
+      },
+      "required": ["name", "description", "level", "isEnabled"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Represents a school-wide announcement.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the announcement."
+        },
+        "content": {
+          "type": "string",
+          "description": "The full content of the announcement."
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "The date the announcement was published."
+        },
+        "readCount": {
+          "type": "number",
+          "description": "The number of students who have read the announcement."
+        }
+      },
+      "required": ["title", "content", "date"]
+    },
+    "Assignment": {
+      "title": "Assignment",
+      "description": "Represents a written assignment for a course.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the assignment."
+        },
+        "instructions": {
+          "type": "string",
+          "description": "Detailed instructions for the assignment."
+        },
+        "courseId": {
+          "type": "string",
+          "description": "The ID of the course this assignment belongs to."
+        },
+        "courseName": {
+            "type": "string",
+            "description": "The name of the course this assignment belongs to."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the assignment was created."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "published"],
+          "description": "The status of the assignment."
+        },
+        "maxMarks": {
+          "type": "number",
+          "description": "The maximum possible marks for the assignment."
+        }
+      },
+      "required": ["title", "instructions", "courseId", "createdAt", "courseName", "status", "maxMarks"]
+    },
+    "AssignmentSubmission": {
+        "title": "Assignment Submission",
+        "description": "Represents a student's submission for an assignment.",
+        "type": "object",
+        "properties": {
+            "assignmentId": { "type": "string" },
+            "assignmentTitle": { "type": "string" },
+            "studentId": { "type": "string" },
+            "studentName": { "type": "string" },
+            "courseId": { "type": "string" },
+            "courseName": { "type": "string" },
+            "answers": { "type": "string" },
+            "submittedAt": { "type": "string", "format": "date-time" },
+            "status": { "type": "string", "enum": ["submitted", "graded"] },
+            "feedback": { "type": "string" },
+            "marks": { "type": "number" }
+        },
+        "required": ["assignmentId", "studentId", "courseId", "courseName", "answers", "submittedAt", "status"]
+    },
+    "Enrollment": {
+        "title": "Enrollment",
+        "description": "Represents a student's enrollment in a course.",
+        "type": "object",
+        "properties": {
+            "studentId": {
+                "type": "string"
+            },
+            "studentName": {
+                "type": "string"
+            },
+            "courseId": {
+                "type": "string"
+            },
+            "courseName": {
+                "type": "string"
+            },
+            "enrolledAt": {
+                "type": "string",
+                "format": "date-time"
+            }
+        },
+        "required": ["studentId", "courseId", "enrolledAt"]
+    },
+    "EnrollmentRequest": {
+      "title": "Enrollment Request",
+      "description": "A student's request to enroll in a course, submitted via the public enrollment form.",
+      "type": "object",
+      "properties": {
+        "fullName": {
+          "type": "string"
+        },
+        "age": {
+          "type": "number"
+        },
+        "address": {
+          "type": "string"
+        },
+        "enrolledCourseId": {
+          "type": "string"
+        },
+        "courseName": {
+          "type": "string"
+        },
+        "englishLevel": {
+          "type": "string"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "maritalStatus": {
+          "type": "string",
+          "enum": [
+            "single",
+            "married"
+          ]
+        },
+        "educationalStatus": {
+          "type": "string",
+          "enum": [
+            "government_student",
+            "dropout",
+            "graduated",
+            "never_went_to_school"
+          ]
+        },
+        "learningReason": {
+          "type": "string"
+        },
+        "requestDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "approved",
+            "rejected"
+          ]
+        }
+      },
+      "required": [
+        "fullName",
+        "age",
+        "address",
+        "enrolledCourseId",
+        "courseName",
+        "englishLevel",
+        "maritalStatus",
+        "educationalStatus",
+        "learningReason",
+        "requestDate",
+        "status"
+      ]
+    },
+    "ReadReceipt": {
+      "title": "Read Receipt",
+      "description": "Marks that a student has read an announcement.",
+      "type": "object",
+      "properties": {
+        "readAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the announcement was read."
+        }
+      },
+      "required": ["readAt"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Represents a daily attendance record for a student.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["present", "absent"] },
+        "reason": { "type": "string" },
+        "markedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "studentName", "date", "status", "markedAt"]
+    },
+    "SchoolSettings": {
+      "title": "School Settings",
+      "description": "General settings for the school, such as active days.",
+      "type": "object",
+      "properties": {
+        "activeDays": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] }
+        }
+      },
+      "required": ["activeDays"]
+    },
+    "AITutorSession": {
+        "title": "AI Tutor Session",
+        "description": "Represents a single conversation session between a student and the AI tutor.",
+        "type": "object",
+        "properties": {
+            "studentId": { "type": "string" },
+            "studentName": { "type": "string" },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "lastActivity": { "type": "string", "format": "date-time" },
+            "history": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "role": { "type": "string", "enum": ["user", "model"] },
+                        "content": { "type": "string" }
+                    },
+                    "required": ["role", "content"]
+                }
+            }
+        },
+        "required": ["studentId", "studentName", "createdAt", "lastActivity", "history"]
+    },
+    "ForumTopic": {
+      "title": "Forum Topic",
+      "description": "Represents a single topic or thread in the forum.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdById": { "type": "string" },
+        "createdByName": { "type": "string" },
+        "createdByPhotoURL": { "type": "string", "format": "uri" },
+        "lastActivity": { "type": "string", "format": "date-time" },
+        "replyCount": { "type": "number" },
+        "isPinned": { "type": "boolean" },
+        "isLocked": { "type": "boolean" }
+      },
+      "required": ["title", "content", "createdAt", "createdById", "createdByName", "lastActivity"]
+    },
+    "ForumPost": {
+      "title": "Forum Post",
+      "description": "Represents a single reply within a forum topic.",
+      "type": "object",
+      "properties": {
+        "topicId": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdById": { "type": "string" },
+        "createdByName": { "type": "string" },
+        "createdByPhotoURL": { "type": "string", "format": "uri" }
+      },
+      "required": ["topicId", "content", "createdAt", "createdById", "createdByName"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "Represents a single message in the group chat.",
+      "type": "object",
+      "properties": {
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdById": { "type": "string" },
+        "createdByName": { "type": "string" },
+        "createdByPhotoURL": { "type": "string", "format": "uri" }
+      },
+      "required": ["content", "createdAt", "createdById", "createdByName"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Represents a notification for a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The ID of the user this notification is for." },
+        "message": { "type": "string", "description": "The content of the notification." },
+        "link": { "type": "string", "description": "The URL the notification should link to." },
+        "isRead": { "type": "boolean", "description": "Whether the user has read the notification." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the notification was created." }
+      },
+      "required": ["userId", "message", "link", "isRead", "createdAt"]
+    },
+    "CompletedLesson": {
+      "title": "Completed Lesson",
+      "description": "Marks that a student has completed a video lesson.",
+      "type": "object",
+      "properties": {
+        "completedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "courseId": {
+            "type": "string"
+        }
+      },
+      "required": ["completedAt", "courseId"]
+    },
+    "LessonActivity": {
+      "title": "Lesson Activity",
+      "description": "Tracks student interaction with a video lesson.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "lessonId": { "type": "string" },
+        "lessonTitle": { "type": "string" },
+        "courseId": { "type": "string" },
+        "status": { "type": "string", "enum": ["watching", "completed"] },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "userName", "lessonId", "lessonTitle", "courseId", "status", "startedAt"]
+    }
+  },
+  "auth": {
+    "providers": ["email_password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/backend/entities/UserProfile"
+      },
+      "description": "Stores public profile information for each user, keyed by their UID."
+    },
+    "/users/{userId}/completedLessons/{lessonId}": {
+      "schema": {
+        "$ref": "#/backend/entities/CompletedLesson"
+      },
+      "description": "Tracks which video lessons a student has completed."
+    },
+    "/courses/{courseId}": {
+        "schema": {
+            "$ref": "#/backend/entities/Course"
+        },
+        "description": "Stores information about all available courses."
+    },
+    "/announcements/{announcementId}": {
+        "schema": {
+            "$ref": "#/backend/entities/Announcement"
+        },
+        "description": "Stores all school announcements."
+    },
+    "/announcements/{announcementId}/readBy/{studentId}": {
+      "schema": {
+        "$ref": "#/backend/entities/ReadReceipt"
+      },
+      "description": "Tracks which student has read a specific announcement."
+    },
+    "/assignments/{assignmentId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Assignment"
+      },
+      "description": "Stores all created assignments for all courses."
+    },
+    "/submissions/{submissionId}": {
+        "schema": { "$ref": "#/backend/entities/AssignmentSubmission" },
+        "description": "Stores student submissions for assignments."
+    },
+    "/enrollments/{enrollmentId}": {
+        "schema": {
+            "$ref": "#/backend/entities/Enrollment"
+        },
+        "description": "Stores records of student enrollments in courses."
+    },
+    "/enrollment_requests/{requestId}": {
+        "schema": {
+            "$ref": "#/backend/entities/EnrollmentRequest"
+        },
+        "description": "Stores student enrollment requests from the public form for admin review."
+    },
+    "/attendance/{attendanceId}": {
+      "schema": { "$ref": "#/backend/entities/Attendance" },
+      "description": "Stores all daily attendance records for all students."
+    },
+    "/settings/school": {
+      "schema": { "$ref": "#/backend/entities/SchoolSettings" },
+      "description": "Stores global school settings."
+    },
+    "/ai_tutor_sessions/{sessionId}": {
+      "schema": { "$ref": "#/backend/entities/AITutorSession" },
+      "description": "Stores conversation histories from the AI Tutor."
+    },
+    "/forum_topics/{topicId}": {
+      "schema": { "$ref": "#/backend/entities/ForumTopic" },
+      "description": "Stores all forum topics."
+    },
+    "/forum_topics/{topicId}/posts/{postId}": {
+      "schema": { "$ref": "#/backend/entities/ForumPost" },
+      "description": "Stores all posts/replies for a specific forum topic."
+    },
+    "/chat_messages/{messageId}": {
+      "schema": { "$ref": "#/backend/entities/ChatMessage" },
+      "description": "Stores all messages for the school-wide group chat."
+    },
+     "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/backend/entities/Notification" },
+      "description": "Stores notifications for users."
+    },
+    "/lesson_activities/{activityId}": {
+      "schema": { "$ref": "#/backend/entities/LessonActivity" },
+      "description": "Stores records of students watching or completing video lessons."
+    }
+  }
+}

@@ -1,0 +1,237 @@
+ 'use client';
+export const dynamic = 'force-dynamic';
+
+import {
+  User,
+  AtSign,
+  Cake,
+  Home,
+  Phone,
+  BookOpen,
+  GraduationCap,
+  Heart,
+  Briefcase,
+  HelpCircle,
+  ArrowLeft,
+  FilePenLine,
+  KeyRound,
+  ShieldCheck,
+  ShieldX,
+  Percent,
+  Building,
+  QrCode,
+  Download,
+} from 'lucide-react';
+import Image from 'next/image';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useCollection, useDoc, useFirestore } from '@/firebase';
+import { collection, doc, query, where } from 'firebase/firestore';
+import type { UserProfile, Course, Assignment, AssignmentSubmission } from '@/lib/data';
+import { notFound, useParams } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
+
+const DetailItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value?: React.ReactNode }) => (
+    <div className="flex items-start gap-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+            {icon}
+        </div>
+        <div>
+            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+            <div className="text-lg font-semibold">{value || 'N/A'}</div>
+        </div>
+    </div>
+);
+
+export default function StudentProfilePage() {
+    const params = useParams();
+    const studentId = params!.studentId as string;
+  const firestore = useFirestore();
+
+  const studentRef = firestore && studentId ? doc(firestore, 'users', studentId) : null;
+  const { data: student, loading: studentLoading } = useDoc<UserProfile>(studentRef);
+
+  const courseRef = firestore && student?.enrolledCourseId ? doc(firestore, 'courses', student.enrolledCourseId) : null;
+  const { data: course, loading: courseLoading } = useDoc<Course>(courseRef);
+  
+  const { data: submissions, loading: submissionsLoading } = useCollection<AssignmentSubmission>(
+    firestore && studentId ? query(collection(firestore, 'submissions'), where('studentId', '==', studentId)) : null
+  );
+
+  const { data: assignments, loading: assignmentsLoading } = useCollection<Assignment>(
+    firestore && student?.enrolledCourseId ? query(collection(firestore, 'assignments'), where('courseId', '==', student.enrolledCourseId)) : null
+  );
+  
+  const averageGrade = useMemo(() => {
+    if (!submissions || submissions.length === 0 || !assignments) return null;
+
+    const assignmentMaxMarks = new Map<string, number>();
+    assignments.forEach(a => assignmentMaxMarks.set(a.id, a.maxMarks));
+
+    const gradedSubmissions = submissions.filter(s => s.status === 'graded' && s.marks !== undefined);
+    if (gradedSubmissions.length === 0) return null;
+
+    const { totalMarks, totalMaxMarks } = gradedSubmissions.reduce(
+        (acc, sub) => {
+            const maxMarks = assignmentMaxMarks.get(sub.assignmentId) || 100;
+            acc.totalMarks += sub.marks!;
+            acc.totalMaxMarks += maxMarks;
+            return acc;
+        },
+        { totalMarks: 0, totalMaxMarks: 0 }
+    );
+    
+    return totalMaxMarks > 0 ? Math.round((totalMarks / totalMaxMarks) * 100) : 0;
+  }, [submissions, assignments]);
+
+
+  if (studentLoading || courseLoading || submissionsLoading || assignmentsLoading) {
+    return (
+        <div className="space-y-6">
+             <div className="flex justify-between items-start">
+                <div className="flex items-center gap-4">
+                    <Skeleton className="h-24 w-24 rounded-full" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-48" />
+                        <Skeleton className="h-6 w-64" />
+                    </div>
+                </div>
+                 <Skeleton className="h-10 w-28" />
+            </div>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-1/4" />
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {Array.from({ length: 9 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-4">
+                            <Skeleton className="h-10 w-10 rounded-lg" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-6 w-32" />
+                            </div>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        </div>
+    );
+  }
+
+  if (!student) {
+    return notFound();
+  }
+
+  const educationalStatusMap = {
+    government_student: 'Government Student',
+    dropout: 'Dropout',
+    graduated: 'Graduated',
+    never_went_to_school: 'Never Went to School'
+  };
+  
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+  const qrData = `${appUrl}/admin/attendance/mark-present?studentId=${student.id}`;
+
+  return (
+    <div className="flex flex-col gap-8">
+       <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+                <Link href="/admin/students" passHref>
+                <Button variant="outline" size="icon">
+                    <ArrowLeft className="h-4 w-4" />
+                </Button>
+                </Link>
+                <div className="flex items-center gap-4">
+                    <Avatar className="h-24 w-24">
+                        {student.photoURL && <AvatarImage src={student.photoURL} alt={student.name} />}
+                        <AvatarFallback className="text-3xl">{student.name?.charAt(0) || 'S'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <div className='flex items-center gap-4'>
+                             <h1 className="font-headline text-4xl font-bold tracking-tight">{student.name}</h1>
+                             <Badge variant={student.status === 'active' ? 'secondary' : 'destructive'} className="capitalize text-base">
+                                {student.status === 'active' ? <ShieldCheck className="mr-2 h-4 w-4"/> : <ShieldX className="mr-2 h-4 w-4"/>}
+                                {student.status}
+                             </Badge>
+                        </div>
+                        <p className="text-l text-muted-foreground flex items-center gap-2 mt-1">
+                            <KeyRound className="h-5 w-5" /> {student.loginKey}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <Link href={`/admin/students/${studentId}/edit`} passHref>
+                <Button>
+                    <FilePenLine className="mr-2 h-4 w-4" /> Edit Profile
+                </Button>
+            </Link>
+      </div>
+
+
+      <Card>
+        <CardHeader>
+            <CardTitle>Student Information</CardTitle>
+            <CardDescription>Detailed profile of {student.name}.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 pt-4">
+            <DetailItem icon={<User />} label="Full Name" value={student.name} />
+            <DetailItem icon={<AtSign />} label="Login Email" value={student.email} />
+            <DetailItem icon={<Cake />} label="Age" value={student.age} />
+            <DetailItem icon={<Home />} label="Address" value={student.address} />
+            <DetailItem icon={<Phone />} label="Phone Number" value={student.phoneNumber} />
+            <DetailItem icon={<BookOpen />} label="Enrolled Course" value={course?.name || 'Not Enrolled'} />
+            <DetailItem icon={<GraduationCap />} label="English Level" value={<Badge variant="secondary">{student.englishLevel}</Badge>} />
+            <DetailItem 
+                icon={<Percent />} 
+                label="Average Grade" 
+                value={averageGrade !== null ? <Badge className="text-base">{averageGrade}%</Badge> : 'No grades yet'} 
+            />
+            <DetailItem icon={<Heart />} label="Marital Status" value={<span className="capitalize">{student.maritalStatus}</span>} />
+            <DetailItem icon={<Briefcase />} label="Educational Status" value={student.educationalStatus ? educationalStatusMap[student.educationalStatus as keyof typeof educationalStatusMap] : 'N/A'} />
+            <DetailItem icon={<HelpCircle />} label="Reason for Learning" value={<p className="text-base font-normal">{student.learningReason}</p>} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <QrCode />
+                Attendance QR Code
+            </CardTitle>
+            <CardDescription>
+            This QR code is unique to {student.name}. Scan it with a camera to mark attendance. It can be printed on an ID card.
+            </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center p-6 gap-4">
+            <Image
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`}
+                alt={`QR Code for ${student.name}`}
+                width={250}
+                height={250}
+            />
+            <Button asChild>
+                <a
+                    href={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`}
+                    download={`${student.name.replace(/\s+/g, '_')}-QRCode.png`}
+                >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download QR Code
+                </a>
+            </Button>
+            <p className="text-xs text-muted-foreground">If scanning a relative path doesn't work, ensure your environment variable <code className='bg-muted p-1 rounded'>NEXT_PUBLIC_APP_URL</code> is set.</p>
+        </CardContent>
+    </Card>
+    </div>
+  );
+}
