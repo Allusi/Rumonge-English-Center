@@ -1,5 +1,6 @@
 {
   "name": "rumonge-english-center-rec",
+  "homepage": "https://allusi.github.io/Rumonge-English-Center",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,6 +8,9 @@
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
+    "export": "next build && next export",
+    "predeploy": "npm run export",
+    "deploy": "gh-pages -d out",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
@@ -74,6 +78,7 @@
     "eslint": "9.39.2",
     "eslint-config-next": "16.1.4",
     "genkit-cli": "^1.20.0",
+    "gh-pages": "^6.3.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "5.9.3"
