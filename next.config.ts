@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Note: static export was removed to allow server/runtime pages and API routes.
+  output: 'standalone', // Use standalone output for APK builds
 };
 
 export default nextConfig;

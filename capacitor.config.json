@@ -1,6 +1,7 @@
 {
   "appId": "com.rumonge.rec",
   "appName": "REC Online",
-  "webDir": "out",
+  "webDir": ".next/standalone/public",
   "bundledWebRuntime": false
 }
+
