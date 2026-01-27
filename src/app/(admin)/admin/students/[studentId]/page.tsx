@@ -40,7 +40,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn, downloadQRCode } from '@/lib/utils';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 const DetailItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value?: React.ReactNode }) => (
     <div className="flex items-start gap-4">
@@ -59,6 +59,7 @@ export default function StudentProfilePage() {
     const studentId = params!.studentId as string;
   const firestore = useFirestore();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [qrUrl, setQrUrl] = useState<string>('');
 
   const studentRef = firestore && studentId ? doc(firestore, 'users', studentId) : null;
   const { data: student, loading: studentLoading } = useDoc<UserProfile>(studentRef);
@@ -141,13 +142,19 @@ export default function StudentProfilePage() {
     never_went_to_school: 'Never Went to School'
   };
   
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-  const qrData = `${appUrl}/admin/attendance/mark-present?studentId=${student.id}`;
+  // Build the QR code URL on the client side using window.location.origin
+  useEffect(() => {
+    if (student?.id) {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const attendanceUrl = `${baseUrl}/admin/attendance/mark-present?studentId=${student.id}`;
+      setQrUrl(attendanceUrl);
+    }
+  }, [student?.id]);
 
   const handleDownloadQRCode = async () => {
     setIsDownloading(true);
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`;
-    await downloadQRCode(qrUrl, `${student.name.replace(/\s+/g, '_')}-QRCode.png`);
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrUrl)}`;
+    await downloadQRCode(qrImageUrl, `${student.name.replace(/\s+/g, '_')}-QRCode.png`);
     setIsDownloading(false);
   };
 
@@ -223,7 +230,7 @@ export default function StudentProfilePage() {
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center p-6 gap-4">
             <Image
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrUrl)}`}
                 alt={`QR Code for ${student.name}`}
                 width={250}
                 height={250}
