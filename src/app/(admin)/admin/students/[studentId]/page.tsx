@@ -39,8 +39,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { useMemo } from 'react';
+import { cn, downloadQRCode } from '@/lib/utils';
+import { useMemo, useState } from 'react';
 
 const DetailItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value?: React.ReactNode }) => (
     <div className="flex items-start gap-4">
@@ -58,6 +58,7 @@ export default function StudentProfilePage() {
     const params = useParams();
     const studentId = params!.studentId as string;
   const firestore = useFirestore();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const studentRef = firestore && studentId ? doc(firestore, 'users', studentId) : null;
   const { data: student, loading: studentLoading } = useDoc<UserProfile>(studentRef);
@@ -143,6 +144,13 @@ export default function StudentProfilePage() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
   const qrData = `${appUrl}/admin/attendance/mark-present?studentId=${student.id}`;
 
+  const handleDownloadQRCode = async () => {
+    setIsDownloading(true);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`;
+    await downloadQRCode(qrUrl, `${student.name.replace(/\s+/g, '_')}-QRCode.png`);
+    setIsDownloading(false);
+  };
+
   return (
     <div className="flex flex-col gap-8">
        <div className="flex items-center justify-between">
@@ -220,14 +228,9 @@ export default function StudentProfilePage() {
                 width={250}
                 height={250}
             />
-            <Button asChild>
-                <a
-                    href={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`}
-                    download={`${student.name.replace(/\s+/g, '_')}-QRCode.png`}
-                >
-                    <Download className="mr-2 h-4 w-4" />
-                    Download QR Code
-                </a>
+            <Button onClick={handleDownloadQRCode} disabled={isDownloading}>
+                <Download className="mr-2 h-4 w-4" />
+                {isDownloading ? 'Downloading...' : 'Download QR Code'}
             </Button>
             <p className="text-xs text-muted-foreground">If scanning a relative path doesn't work, ensure your environment variable <code className='bg-muted p-1 rounded'>NEXT_PUBLIC_APP_URL</code> is set.</p>
         </CardContent>
