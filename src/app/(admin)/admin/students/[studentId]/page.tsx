@@ -229,17 +229,23 @@ export default function StudentProfilePage() {
             </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center p-6 gap-4">
-            <Image
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrUrl)}`}
-                alt={`QR Code for ${student.name}`}
-                width={250}
-                height={250}
-            />
-            <Button onClick={handleDownloadQRCode} disabled={isDownloading}>
-                <Download className="mr-2 h-4 w-4" />
-                {isDownloading ? 'Downloading...' : 'Download QR Code'}
-            </Button>
-            <p className="text-xs text-muted-foreground">If scanning a relative path doesn't work, ensure your environment variable <code className='bg-muted p-1 rounded'>NEXT_PUBLIC_APP_URL</code> is set.</p>
+            {qrUrl ? (
+              <>
+                <Image
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrUrl)}`}
+                    alt={`QR Code for ${student.name}`}
+                    width={250}
+                    height={250}
+                />
+                <Button onClick={handleDownloadQRCode} disabled={isDownloading}>
+                    <Download className="mr-2 h-4 w-4" />
+                    {isDownloading ? 'Downloading...' : 'Download QR Code'}
+                </Button>
+              </>
+            ) : (
+              <Skeleton className="h-[250px] w-[250px] rounded-lg" />
+            )}
+            <p className="text-xs text-muted-foreground">If scanning doesn't work, check that your domain is correctly configured.</p>
         </CardContent>
     </Card>
     </div>
