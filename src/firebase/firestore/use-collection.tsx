@@ -79,7 +79,7 @@ export function useCollection<T extends DocumentData>(
     );
 
     return () => unsubscribe();
-  }, [ref ? queryEqual(ref, ref) : ref]);
+  }, [ref]);
 
   return { data, loading, error };
 }
