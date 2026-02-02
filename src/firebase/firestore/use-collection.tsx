@@ -27,11 +27,9 @@ export function useCollection<T extends DocumentData>(
   const [data, setData] = useState<T[] | null>(options?.initialData || null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  
-  const memoizedRef = useMemo(() => ref, [ref ? queryEqual(ref, ref) : ref]);
 
   useEffect(() => {
-    if (!memoizedRef) {
+    if (!ref) {
       setLoading(false);
       setData(null);
       return;
@@ -40,7 +38,7 @@ export function useCollection<T extends DocumentData>(
     setLoading(true);
 
     const unsubscribe = onSnapshot(
-      memoizedRef,
+      ref,
       (snapshot) => {
         const result: T[] = [];
         snapshot.forEach((doc) => {
@@ -54,12 +52,12 @@ export function useCollection<T extends DocumentData>(
         // Only emit a specific permission error if the code matches.
         if (err.code === 'permission-denied') {
             let path = 'unknown';
-             if (memoizedRef) {
-                if ('path' in memoizedRef) {
-                    path = memoizedRef.path;
+             if (ref) {
+                if ('path' in ref) {
+                    path = ref.path;
                 } else {
                      try {
-                         const tempColl = collection(memoizedRef.firestore, (memoizedRef as any)._query.path.segments.join('/'));
+                         const tempColl = collection(ref.firestore, (ref as any)._query.path.segments.join('/'));
                          path = tempColl.path;
                      } catch(e) {
                         console.error("Could not determine path from query", e);
@@ -81,7 +79,7 @@ export function useCollection<T extends DocumentData>(
     );
 
     return () => unsubscribe();
-  }, [memoizedRef]);
+  }, [ref ? queryEqual(ref, ref) : ref]);
 
   return { data, loading, error };
 }

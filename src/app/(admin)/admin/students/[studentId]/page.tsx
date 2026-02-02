@@ -40,7 +40,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn, downloadQRCode } from '@/lib/utils';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 
 const DetailItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value?: React.ReactNode }) => (
     <div className="flex items-start gap-4">
@@ -59,7 +59,6 @@ export default function StudentProfilePage() {
     const studentId = params!.studentId as string;
   const firestore = useFirestore();
   const [isDownloading, setIsDownloading] = useState(false);
-  const [qrUrl, setQrUrl] = useState<string>('');
 
   const studentRef = firestore && studentId ? doc(firestore, 'users', studentId) : null;
   const { data: student, loading: studentLoading } = useDoc<UserProfile>(studentRef);
@@ -142,16 +141,17 @@ export default function StudentProfilePage() {
     never_went_to_school: 'Never Went to School'
   };
   
-  // Build the QR code URL on the client side using window.location.origin
-  useEffect(() => {
-    if (student?.id) {
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const attendanceUrl = `${baseUrl}/admin/attendance/mark-present?studentId=${student.id}`;
-      setQrUrl(attendanceUrl);
-    }
-  }, [student?.id]);
+  // Build a simple URL for the QR code (safe to access on client)
+  const getQRUrl = () => {
+    if (!student?.id) return '';
+    if (typeof window === 'undefined') return '';
+    return `${window.location.origin}/admin/attendance/mark-present?studentId=${student.id}`;
+  };
+  
+  const qrUrl = getQRUrl();
 
   const handleDownloadQRCode = async () => {
+    if (!qrUrl) return;
     setIsDownloading(true);
     const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrUrl)}`;
     await downloadQRCode(qrImageUrl, `${student.name.replace(/\s+/g, '_')}-QRCode.png`);

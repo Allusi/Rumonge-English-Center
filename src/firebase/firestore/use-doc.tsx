@@ -22,11 +22,9 @@ export function useDoc<T extends DocumentData>(
   const [data, setData] = useState<T | null>(options?.initialData || null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  
-  const memoizedRef = useMemo(() => ref, [ref?.path]);
 
   useEffect(() => {
-    if (!memoizedRef) {
+    if (!ref) {
       setLoading(false);
       setData(null);
       return;
@@ -35,7 +33,7 @@ export function useDoc<T extends DocumentData>(
     setLoading(true);
 
     const unsubscribe = onSnapshot(
-      memoizedRef,
+      ref,
       (snapshot) => {
         if (snapshot.exists()) {
           setData({ id: snapshot.id, ...snapshot.data() } as unknown as T);
@@ -47,7 +45,7 @@ export function useDoc<T extends DocumentData>(
       },
       (err) => {
         const permissionError = new FirestorePermissionError({
-          path: memoizedRef.path,
+          path: ref.path,
           operation: 'get',
         } satisfies SecurityRuleContext);
         errorEmitter.emit('permission-error', permissionError);
@@ -57,7 +55,7 @@ export function useDoc<T extends DocumentData>(
     );
 
     return () => unsubscribe();
-  }, [memoizedRef]);
+  }, [ref?.path]);
 
   return { data, loading, error };
 }
