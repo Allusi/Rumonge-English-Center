@@ -33,6 +33,7 @@ import {
   Bar,
   ResponsiveContainer,
 } from 'recharts';
+import { AttendanceAlertsWidget } from '@/components/attendance-alerts-widget';
 
 export default function AdminDashboard() {
   const firestore = useFirestore();
@@ -204,6 +205,8 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <AttendanceAlertsWidget />
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
         <div className="md:col-span-2">
