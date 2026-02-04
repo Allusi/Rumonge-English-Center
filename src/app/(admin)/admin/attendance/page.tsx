@@ -56,6 +56,9 @@ export default function AdminAttendancePage() {
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
+    defaultValues: {
+      activeDays: [],
+    },
   });
 
   useEffect(() => {

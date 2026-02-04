@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useFirestore, useCollection } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,8 +30,6 @@ export function AttendanceAlertsWidget() {
     firestore
       ? query(
           collection(firestore, 'attendance'),
-          where('date', '>=', startDateString),
-          where('date', '<=', today),
           where('status', '==', 'present')
         )
       : null
@@ -43,11 +41,14 @@ export function AttendanceAlertsWidget() {
       return;
     }
 
-    // Group attendance by student ID and count days
+    // Group attendance by student ID and count days (filtering for past 7 days in memory)
     const attendanceByStudent = new Map<string, number>();
     attendanceRecords.forEach((record) => {
-      const count = attendanceByStudent.get(record.studentId) || 0;
-      attendanceByStudent.set(record.studentId, count + 1);
+      // Filter records from past 7 days
+      if (record.date >= startDateString && record.date <= today) {
+        const count = attendanceByStudent.get(record.studentId) || 0;
+        attendanceByStudent.set(record.studentId, count + 1);
+      }
     });
 
     // Build alerts for students below threshold
@@ -78,7 +79,7 @@ export function AttendanceAlertsWidget() {
 
     setAlerts(newAlerts);
     setLoading(false);
-  }, [students, attendanceRecords, attendanceLoading]);
+  }, [students, attendanceRecords, attendanceLoading, startDateString, today]);
 
   if (loading || attendanceLoading) {
     return (
