@@ -16,7 +16,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const firestore = useFirestore();
 
-    const userDocRef = (firestore && user) ? doc(firestore, 'users', user.uid) : null;
+    // Always call hooks unconditionally, pass null-safe reference
+    const userDocRef = firestore && user ? doc(firestore, 'users', user.uid) : null;
     const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
     useEffect(() => {
