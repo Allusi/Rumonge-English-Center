@@ -71,11 +71,19 @@ export default function EnrollmentPage() {
         }
 
         try {
-            // Check for duplicate enrollment requests
+            // Check for duplicate enrollment requests and existing users in parallel
             const requestsRef = collection(firestore, 'enrollment_requests');
             const qRequests = query(requestsRef, where('fullName', '==', values.fullName));
-            const requestSnapshot = await getDocs(qRequests);
+            const usersRef = collection(firestore, 'users');
+            const qUsers = query(usersRef, where('name', '==', values.fullName));
+            
+            const [requestSnapshot, usersSnapshot] = await Promise.all([
+              getDocs(qRequests),
+              getDocs(qUsers)
+            ]);
+            
             const duplicateRequest = requestSnapshot.docs.some(doc => doc.data().phoneNumber === (values.phoneNumber || null));
+            const duplicateUser = usersSnapshot.docs.some(doc => doc.data().phoneNumber === (values.phoneNumber || null));
 
             if (duplicateRequest) {
                 toast({
@@ -85,12 +93,6 @@ export default function EnrollmentPage() {
                 });
                 return;
             }
-
-            // Check for existing users with same details
-            const usersRef = collection(firestore, 'users');
-            const qUsers = query(usersRef, where('name', '==', values.fullName));
-            const usersSnapshot = await getDocs(qUsers);
-            const duplicateUser = usersSnapshot.docs.some(doc => doc.data().phoneNumber === (values.phoneNumber || null));
             
             if (duplicateUser) {
                 toast({

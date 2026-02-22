@@ -9,7 +9,8 @@ import {
   CardDescription
 } from "@/components/ui/card";
 import { useCollection, useFirestore } from "@/firebase";
-import { collection, orderBy, query } from "firebase/firestore";
+import { collection, orderBy, query, limit } from "firebase/firestore";
+import { useMemo } from "react";
 import type { Announcement } from "@/lib/data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Megaphone } from "lucide-react";
@@ -18,8 +19,11 @@ import { Button } from "@/components/ui/button";
 
 export default function StudentAnnouncementsPage() {
   const firestore = useFirestore();
-  const announcementsQuery = firestore ? query(collection(firestore, 'announcements'), orderBy('date', 'desc')) : null;
-  const { data: announcements, loading } = useCollection<Announcement>(announcementsQuery);
+  const announcementsQueryMemo = useMemo(() =>
+    firestore ? query(collection(firestore, 'announcements'), orderBy('date', 'desc'), limit(50)) : null,
+    [firestore]
+  );
+  const { data: announcements, loading } = useCollection<Announcement>(announcementsQueryMemo);
 
   return (
     <div className="flex flex-col gap-6">

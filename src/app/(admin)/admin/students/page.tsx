@@ -12,7 +12,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, doc, updateDoc, deleteDoc, limit } from 'firebase/firestore';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useMemo } from 'react';
@@ -60,17 +60,24 @@ export default function StudentsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { data: students, loading: studentsLoading } = useCollection<UserProfile>(
-    firestore ? query(collection(firestore, 'users'), where('role', '==', 'student')) : null
+  const studentsQuery = useMemo(() =>
+    firestore ? query(collection(firestore, 'users'), where('role', '==', 'student'), limit(200)) : null,
+    [firestore]
   );
   
-  const { data: submissions, loading: submissionsLoading } = useCollection<AssignmentSubmission>(
-    firestore ? collection(firestore, 'submissions') : null
+  const submissionsQuery = useMemo(() =>
+    firestore ? query(collection(firestore, 'submissions'), limit(500)) : null,
+    [firestore]
   );
   
-  const { data: assignments, loading: assignmentsLoading } = useCollection<Assignment>(
-      firestore ? collection(firestore, 'assignments') : null
+  const assignmentsQuery = useMemo(() =>
+    firestore ? query(collection(firestore, 'assignments'), limit(100)) : null,
+    [firestore]
   );
+
+  const { data: students, loading: studentsLoading } = useCollection<UserProfile>(studentsQuery);
+  const { data: submissions, loading: submissionsLoading } = useCollection<AssignmentSubmission>(submissionsQuery);
+  const { data: assignments, loading: assignmentsLoading } = useCollection<Assignment>(assignmentsQuery);
 
   const studentGrades = useMemo(() => {
     if (!students || !submissions || !assignments) return new Map<string, number>();

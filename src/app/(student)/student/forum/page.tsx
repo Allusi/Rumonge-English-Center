@@ -2,7 +2,7 @@
 'use client';
 
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import type { ForumTopic } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -15,8 +15,11 @@ import { useMemo } from 'react';
 
 export default function ForumPage() {
   const firestore = useFirestore();
-  const topicsQuery = firestore ? query(collection(firestore, 'forum_topics'), orderBy('lastActivity', 'desc')) : null;
-  const { data: topics, loading } = useCollection<ForumTopic>(topicsQuery);
+  const topicsQueryMemo = useMemo(() =>
+    firestore ? query(collection(firestore, 'forum_topics'), orderBy('lastActivity', 'desc'), limit(100)) : null,
+    [firestore]
+  );
+  const { data: topics, loading } = useCollection<ForumTopic>(topicsQueryMemo);
 
   const { pinned, unpinned } = useMemo(() => {
     const pinned = topics?.filter(t => t.isPinned) || [];

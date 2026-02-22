@@ -34,7 +34,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCollection, useFirestore } from "@/firebase";
-import { collection, deleteDoc, doc, orderBy, query } from "firebase/firestore";
+import { collection, deleteDoc, doc, orderBy, query, limit } from "firebase/firestore";
+import { useMemo } from "react";
 import type { Announcement } from "@/lib/data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -45,8 +46,11 @@ export default function AnnouncementsPage() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const announcementsQuery = firestore ? query(collection(firestore, 'announcements'), orderBy('date', 'desc')) : null;
-  const { data: announcements, loading } = useCollection<Announcement>(announcementsQuery);
+  const announcementsQueryMemo = useMemo(() =>
+    firestore ? query(collection(firestore, 'announcements'), orderBy('date', 'desc'), limit(100)) : null,
+    [firestore]
+  );
+  const { data: announcements, loading } = useCollection<Announcement>(announcementsQueryMemo);
 
   const handleDelete = async (announcementId: string) => {
     if (!firestore) return;

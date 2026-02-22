@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useUser } from '@/firebase';
 import { collection, query, orderBy, limit, where } from 'firebase/firestore';
+import { useMemo } from 'react';
 import type { Course, UserProfile, Announcement, Enrollment } from '@/lib/data';
 import {
   ChartContainer,
@@ -38,20 +39,30 @@ export default function AdminDashboard() {
   const firestore = useFirestore();
   const { user } = useUser();
 
-  const { data: students } = useCollection<UserProfile>(
-    firestore ? query(collection(firestore, 'users'), where('role', '==', 'student')) : null
+  const studentsQuery = useMemo(() => 
+    firestore ? query(collection(firestore, 'users'), where('role', '==', 'student'), limit(100)) : null,
+    [firestore]
   );
-  const { data: courses } = useCollection<Course>(
-    firestore ? collection(firestore, 'courses') : null
+  
+  const coursesQuery = useMemo(() => 
+    firestore ? query(collection(firestore, 'courses'), limit(50)) : null,
+    [firestore]
   );
-  const { data: announcements } = useCollection<Announcement>(
-    firestore
-      ? query(collection(firestore, 'announcements'), orderBy('date', 'desc'))
-      : null
+  
+  const announcementsQuery = useMemo(() =>
+    firestore ? query(collection(firestore, 'announcements'), orderBy('date', 'desc'), limit(20)) : null,
+    [firestore]
   );
-  const { data: enrollments } = useCollection<Enrollment>(
-    firestore ? collection(firestore, 'enrollments') : null
+  
+  const enrollmentsQuery = useMemo(() =>
+    firestore ? query(collection(firestore, 'enrollments'), limit(200)) : null,
+    [firestore]
   );
+
+  const { data: students } = useCollection<UserProfile>(studentsQuery);
+  const { data: courses } = useCollection<Course>(coursesQuery);
+  const { data: announcements } = useCollection<Announcement>(announcementsQuery);
+  const { data: enrollments } = useCollection<Enrollment>(enrollmentsQuery);
 
   const recentStudents =
     students

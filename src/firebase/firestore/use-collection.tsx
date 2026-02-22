@@ -49,7 +49,6 @@ export function useCollection<T extends DocumentData>(
         setError(null);
       },
       (err: any) => {
-        // Only emit a specific permission error if the code matches.
         if (err.code === 'permission-denied') {
             let path = 'unknown';
              if (ref) {
@@ -69,9 +68,6 @@ export function useCollection<T extends DocumentData>(
               operation: 'list',
             } satisfies SecurityRuleContext);
             errorEmitter.emit('permission-error', permissionError);
-        } else {
-            // For all other errors, throw them to see the real cause.
-            throw err;
         }
         setError(err);
         setLoading(false);

@@ -34,7 +34,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCollection, useFirestore } from "@/firebase";
-import { collection, deleteDoc, doc, orderBy, query, getDocs, writeBatch, serverTimestamp, where } from "firebase/firestore";
+import { collection, deleteDoc, doc, orderBy, query, getDocs, writeBatch, serverTimestamp, where, limit } from "firebase/firestore";
+import { useMemo } from "react";
 import type { Assignment } from "@/lib/data";
 import { initialAssignment } from "@/lib/assignments-data";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,7 +51,10 @@ export default function AssignmentsPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  const assignmentsCollection = firestore ? collection(firestore, 'assignments') : null;
+  const assignmentsCollection = useMemo(() => 
+    firestore ? collection(firestore, 'assignments') : null,
+    [firestore]
+  );
 
   useEffect(() => {
     const seedAssignment = async () => {
@@ -67,8 +71,11 @@ export default function AssignmentsPage() {
     seedAssignment();
   }, [firestore, assignmentsCollection]);
 
-  const assignmentsQuery = assignmentsCollection ? query(assignmentsCollection, orderBy('createdAt', 'desc')) : null;
-  const { data: assignments, loading } = useCollection<Assignment>(assignmentsQuery);
+  const assignmentsQueryMemo = useMemo(() =>
+    assignmentsCollection ? query(assignmentsCollection, orderBy('createdAt', 'desc'), limit(100)) : null,
+    [assignmentsCollection]
+  );
+  const { data: assignments, loading } = useCollection<Assignment>(assignmentsQueryMemo);
 
   const handleDelete = async (assignmentId: string) => {
     if (!firestore) return;

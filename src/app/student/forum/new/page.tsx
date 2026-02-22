@@ -64,18 +64,20 @@ export default function NewForumTopicPage() {
         isLocked: false,
       });
 
-      // Create notification for admin
+      // Create notification for admin in parallel
       const adminsQuery = query(collection(firestore, 'users'), where('role', '==', 'admin'));
       const adminSnapshot = await getDocs(adminsQuery);
-      adminSnapshot.forEach(adminDoc => {
-            addDoc(collection(firestore, 'notifications'), {
-              userId: adminDoc.id,
-              message: `New forum topic started: "${values.title}"`,
-              link: `/student/forum`, // Adjust link as needed
-              isRead: false,
-              createdAt: serverTimestamp(),
-          });
-      });
+      await Promise.all(
+        adminSnapshot.docs.map(adminDoc =>
+          addDoc(collection(firestore, 'notifications'), {
+            userId: adminDoc.id,
+            message: `New forum topic started: "${values.title}"`,
+            link: `/student/forum`, // Adjust link as needed
+            isRead: false,
+            createdAt: serverTimestamp(),
+          })
+        )
+      );
 
 
       toast({ title: 'Success', description: 'Your topic has been posted.' });

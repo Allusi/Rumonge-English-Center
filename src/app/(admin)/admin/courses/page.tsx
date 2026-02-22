@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCollection, useFirestore } from "@/firebase";
-import { collection, writeBatch, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, writeBatch, getDocs, doc, updateDoc, query, limit } from "firebase/firestore";
 import type { Course, Enrollment } from "@/lib/data";
 import { courses as hardcodedCourses } from "@/lib/data";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,8 +34,16 @@ import Link from "next/link";
 export default function CoursesPage() {
   const firestore = useFirestore();
   const router = useRouter();
-  const coursesCollection = firestore ? collection(firestore, 'courses') : null;
-  const enrollmentsCollection = firestore ? collection(firestore, 'enrollments') : null;
+  
+  const coursesCollection = useMemo(() => 
+    firestore ? collection(firestore, 'courses') : null,
+    [firestore]
+  );
+  
+  const enrollmentsCollection = useMemo(() => 
+    firestore ? collection(firestore, 'enrollments') : null,
+    [firestore]
+  );
 
   useEffect(() => {
     const seedCourses = async () => {
@@ -55,7 +63,13 @@ export default function CoursesPage() {
   }, [firestore, coursesCollection]);
 
   const { data: courses, loading: coursesLoading } = useCollection<Course>(coursesCollection);
-  const { data: enrollments, loading: enrollmentsLoading } = useCollection<Enrollment>(enrollmentsCollection);
+  
+  const enrollmentsQueryMemo = useMemo(() =>
+    firestore && enrollmentsCollection ? query(enrollmentsCollection, limit(300)) : null,
+    [firestore, enrollmentsCollection]
+  );
+
+  const { data: enrollments, loading: enrollmentsLoading } = useCollection<Enrollment>(enrollmentsQueryMemo);
 
   const handleRowClick = (courseId: string) => {
     router.push(`/admin/courses/${courseId}`);

@@ -64,6 +64,15 @@ function LessonPlayer({ lesson, courseId, isCompleted }: { lesson: Lesson; cours
   const handleVideoEnd = useCallback(async () => {
     if (!user || !firestore || isCompleted || justCompleted) return;
     
+    // Get activity record first before creating batch
+    const activityQuery = query(
+        collection(firestore, 'lesson_activities'),
+        where('userId', '==', user.uid),
+        where('lessonId', '==', lesson.id),
+    );
+    const activitySnapshot = await getDocs(activityQuery);
+    
+    // Now create and commit batch with both operations
     const batch = writeBatch(firestore);
 
     // 1. Mark lesson as completed for student progress UI (in their private subcollection)
@@ -74,12 +83,6 @@ function LessonPlayer({ lesson, courseId, isCompleted }: { lesson: Lesson; cours
     });
 
     // 2. Update the public activity log to 'completed'
-    const activityQuery = query(
-        collection(firestore, 'lesson_activities'),
-        where('userId', '==', user.uid),
-        where('lessonId', '==', lesson.id),
-    );
-    const activitySnapshot = await getDocs(activityQuery);
     if (!activitySnapshot.empty) {
         const activityDocRef = activitySnapshot.docs[0].ref;
         batch.update(activityDocRef, {

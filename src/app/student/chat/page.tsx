@@ -2,7 +2,7 @@
 'use client';
 
 import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
-import { collection, query, orderBy, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
+import { collection, query, orderBy, addDoc, serverTimestamp, writeBatch, doc, limit } from 'firebase/firestore';
 import type { ChatMessage, UserProfile } from '@/lib/data';
 import { ArrowLeft, Send, Loader2, MessageSquareReply, X } from 'lucide-react';
 import Link from 'next/link';
@@ -51,11 +51,17 @@ export default function GroupChatPage() {
   const userProfileRef = firestore && user ? doc(firestore, 'users', user.uid) : null;
   const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
-  const messagesQuery = firestore ? query(collection(firestore, 'chat_messages'), orderBy('createdAt', 'asc')) : null;
-  const { data: messages, loading: messagesLoading } = useCollection<ChatMessage>(messagesQuery);
+  const messagesQueryMemo = useMemo(() => 
+    firestore ? query(collection(firestore, 'chat_messages'), orderBy('createdAt', 'asc'), limit(500)) : null,
+    [firestore]
+  );
+  const { data: messages, loading: messagesLoading } = useCollection<ChatMessage>(messagesQueryMemo);
   
-  const allUsersQuery = firestore ? query(collection(firestore, 'users')) : null;
-  const { data: allUsers, loading: usersLoading } = useCollection<UserProfile>(allUsersQuery);
+  const allUsersQueryMemo = useMemo(() => 
+    firestore ? query(collection(firestore, 'users'), limit(200)) : null,
+    [firestore]
+  );
+  const { data: allUsers, loading: usersLoading } = useCollection<UserProfile>(allUsersQueryMemo);
 
   const filteredUsers = useMemo(() => {
     if (!mentionQuery || !allUsers) return [];

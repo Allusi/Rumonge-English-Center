@@ -36,35 +36,51 @@ export default function StudentDashboard() {
 
   const studentName = studentProfile?.name || "Student";
   
-  const { data: studentEnrollments, loading: enrollmentsLoading } = useCollection<Enrollment>(
-    firestore && user ? query(collection(firestore, 'enrollments'), where('studentId', '==', user.uid)) : null
+  const enrollmentsQuery = useMemo(() => 
+    firestore && user ? query(collection(firestore, 'enrollments'), where('studentId', '==', user.uid), limit(50)) : null,
+    [firestore, user]
   );
+  
+  const { data: studentEnrollments, loading: enrollmentsLoading } = useCollection<Enrollment>(enrollmentsQuery);
 
   const enrolledCourseIds = useMemo(() => studentEnrollments?.map(e => e.courseId) || [], [studentEnrollments]);
 
-  const { data: allCourses, loading: coursesLoading } = useCollection<Course>(
-    firestore ? query(collection(firestore, 'courses'), where('isEnabled', '==', true)) : null
+  const coursesQuery = useMemo(() =>
+    firestore ? query(collection(firestore, 'courses'), where('isEnabled', '==', true), limit(50)) : null,
+    [firestore]
   );
+
+  const { data: allCourses, loading: coursesLoading } = useCollection<Course>(coursesQuery);
   
-  const { data: allAssignments, loading: assignmentsLoading } = useCollection<Assignment>(
+  const assignmentsQuery = useMemo(() =>
     firestore && enrolledCourseIds.length > 0 
     ? query(
         collection(firestore, 'assignments'), 
         where('courseId', 'in', enrolledCourseIds),
-        where('status', '==', 'published')
+        where('status', '==', 'published'),
+        limit(100)
       ) 
-    : null
+    : null,
+    [firestore, enrolledCourseIds]
   );
 
-  const { data: allSubmissions, loading: submissionsLoading } = useCollection<AssignmentSubmission>(
-    firestore && user ? query(collection(firestore, 'submissions'), where('studentId', '==', user.uid)) : null
+  const { data: allAssignments, loading: assignmentsLoading } = useCollection<Assignment>(assignmentsQuery);
+
+  const submissionsQuery = useMemo(() =>
+    firestore && user ? query(collection(firestore, 'submissions'), where('studentId', '==', user.uid), limit(100)) : null,
+    [firestore, user]
   );
 
-  const { data: announcements, loading: announcementsLoading } = useCollection<Announcement>(
+  const { data: allSubmissions, loading: submissionsLoading } = useCollection<AssignmentSubmission>(submissionsQuery);
+
+  const announcementsQuery = useMemo(() =>
     firestore
-      ? query(collection(firestore, 'announcements'), orderBy('date', 'desc'), where('date', '<=', new Date().toISOString().split('T')[0]), limit(3))
-      : null
+      ? query(collection(firestore, 'announcements'), orderBy('date', 'desc'), limit(5))
+      : null,
+    [firestore]
   );
+
+  const { data: announcements, loading: announcementsLoading } = useCollection<Announcement>(announcementsQuery);
 
   const enrolledCourses = useMemo(() => {
     return studentEnrollments?.map((enrollment) => {

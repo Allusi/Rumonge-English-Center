@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AudioCacheProvider } from "@/context/audio-cache-context";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { FirebaseErrorListener } from "@/components/FirebaseErrorListener";
-import { NotificationPermissionRequester } from "@/components/NotificationPermissionRequester";
+// import { NotificationPermissionRequester } from "@/components/NotificationPermissionRequester";
 
 
 export const metadata: Metadata = {
@@ -26,6 +26,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8584759829627880"
      crossOrigin="anonymous"></script>
@@ -36,7 +37,7 @@ export default function RootLayout({
               {children}
             </AudioCacheProvider>
             <FirebaseErrorListener />
-            <NotificationPermissionRequester />
+            {/* <NotificationPermissionRequester /> */}
           </FirebaseClientProvider>
         <Toaster />
       </body>

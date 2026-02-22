@@ -74,18 +74,20 @@ export default function SubmitAssignmentClient() {
         status: 'submitted',
       });
 
-      // Create notification for admin
+      // Create notification for admin in parallel
       const adminsQuery = query(collection(firestore, 'users'), where('role', '==', 'admin'));
       const adminSnapshot = await getDocs(adminsQuery);
-      adminSnapshot.forEach(adminDoc => {
+      await Promise.all(
+        adminSnapshot.docs.map(adminDoc =>
           addDoc(collection(firestore, 'notifications'), {
-              userId: adminDoc.id,
-              message: `${studentProfile.name} submitted an assignment: "${assignment.title}"`,
-              link: `/admin/submissions`,
-              isRead: false,
-              createdAt: serverTimestamp(),
-          });
-      });
+            userId: adminDoc.id,
+            message: `${studentProfile.name} submitted an assignment: "${assignment.title}"`,
+            link: `/admin/submissions`,
+            isRead: false,
+            createdAt: serverTimestamp(),
+          })
+        )
+      );
 
       toast({ title: 'Success', description: 'Your assignment has been submitted.' });
       router.push('/student/assignments');

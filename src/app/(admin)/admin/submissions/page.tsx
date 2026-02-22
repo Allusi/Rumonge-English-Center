@@ -11,7 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useCollection, useFirestore } from "@/firebase";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, limit } from "firebase/firestore";
+import { useMemo } from "react";
 import type { AssignmentSubmission } from "@/lib/data";
 import {
     Table,
@@ -30,8 +31,11 @@ export default function SubmissionsPage() {
   const firestore = useFirestore();
   const router = useRouter();
 
-  const submissionsQuery = firestore ? query(collection(firestore, 'submissions'), orderBy('submittedAt', 'desc')) : null;
-  const { data: submissions, loading } = useCollection<AssignmentSubmission>(submissionsQuery);
+  const submissionsQueryMemo = useMemo(() =>
+    firestore ? query(collection(firestore, 'submissions'), orderBy('submittedAt', 'desc'), limit(100)) : null,
+    [firestore]
+  );
+  const { data: submissions, loading } = useCollection<AssignmentSubmission>(submissionsQueryMemo);
 
   return (
     <div className="flex flex-col gap-6">
